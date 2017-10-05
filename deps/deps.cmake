@@ -1,8 +1,8 @@
 # Set dependences paths
 set(DEPS_PATHS
-	${CMAKE_CURRENT_SOURCE_DIR}/Wheel/src
-	${CMAKE_CURRENT_SOURCE_DIR}/tcpmgr/lib
-	${CMAKE_CURRENT_SOURCE_DIR}/args/lib
+	${CMAKE_CURRENT_SOURCE_DIR}/deps/Wheel/src
+	${CMAKE_CURRENT_SOURCE_DIR}/deps/tcpmgr/lib
+	${CMAKE_CURRENT_SOURCE_DIR}/deps/args/lib
 	)
 include_directories(${DEPS_PATHS})
 
