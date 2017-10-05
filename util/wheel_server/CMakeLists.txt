@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # Set variables
 set(PROJECT_NAME wheel_server)
 set(PROJECT_LANGUAGE C)
-set(PROJECT_DEPS Wheel tcpmgr args serialport)
+set(PROJECT_DEPS Wheel tcpmgr args serialport pthread)
 
 # Compile setting
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
