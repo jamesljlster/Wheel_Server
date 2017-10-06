@@ -56,10 +56,64 @@ RET:
 int wsvc_dev_open(wsvc_t* wsvc, args_t* argList)
 {
 	int ret = 0;
-	int tmp;
-	const char* tmpPtr;
+	int baud, timeout;
+	char* tmpPtr;
 
 	// Parse baudrate
+	baud = strtol(argList[WSVC_DEV_BAUD].leading[0], &tmpPtr, 10);
+	if(tmpPtr == argList[WSVC_DEV_BAUD].leading[0])
+	{
+		printf("Failed to parse \'%s\' to baudrate!\n", tmpPtr);
+		ret = -1;
+		goto RET;
+	}
 
+	// Parse timeout
+	timeout = strtol(argList[WSVC_DEV_TIMEOUT].leading[0], &tmpPtr, 10);
+	if(tmpPtr == argList[WSVC_DEV_TIMEOUT].leading[0])
+	{
+		printf("Failed to parse \'%s\' to timeout!\n", tmpPtr);
+		ret = -1;
+		goto RET;
+	}
+	else
+	{
+		wsvc->devTimeout = timeout;
+	}
+
+	// Create mutex
+	ret = pthread_mutex_init(&wsvc->mutex, NULL);
+	if(ret < 0)
+	{
+		printf("Mutex creation failed!\n");
+		goto RET;
+	}
+	else
+	{
+		wsvc->mutexFlag = 1;
+	}
+
+	// Open device
+	ret = WCTRL_Init(&wsvc->wCtrl, argList[WSVC_DEV_PATH].leading[0], baud);
+	if(ret < 0)
+	{
+		printf("Failed to open device with path: \'%s\', baudrate: %d\n",
+				argList[WSVC_DEV_PATH].leading[0], baud);
+		goto RET;
+	}
+
+RET:
 	return ret;
+}
+
+void wsvc_dev_close(wsvc_t* wsvc)
+{
+	// Close device
+	WCTRL_Close(wsvc->wCtrl);
+
+	// Destroy mutex
+	if(wsvc->mutexFlag > 0)
+	{
+		pthread_mutex_destroy(&wsvc->mutex);
+	}
 }

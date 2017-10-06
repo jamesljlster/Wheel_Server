@@ -19,6 +19,8 @@ typedef struct WSVC
 {
 	WCTRL wCtrl;
 	int devTimeout;
+
+	int mutexFlag;
 	pthread_mutex_t mutex;
 } wsvc_t;
 
