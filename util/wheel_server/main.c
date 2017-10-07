@@ -3,11 +3,28 @@
 #include <string.h>
 
 #include <wsvc.h>
+#include <tcpmgr.h>
+
+#define __strtol(var, str, errMsg, ...) \
+{ \
+	char* tmpPtr; \
+	var = strtol(str, &tmpPtr, 10); \
+	if(tmpPtr == str) \
+	{ \
+		printf(errMsg, ##__VA_ARGS__); \
+		ret = -1; \
+		goto RET; \
+	} \
+}
 
 int main(int argc, char* argv[])
 {
 	int ret;
 	wsvc_t wsvc;
+	tcpmgr_t mgr = NULL;
+
+	char* hostIP;
+	int hostPort, maxClient;
 
 	// Zero memory
 	memset(&wsvc, 0, sizeof(wsvc_t));
@@ -38,8 +55,29 @@ int main(int argc, char* argv[])
 		goto RET;
 	}
 
+	// Parse server setting
+	hostIP = wsvc_arg_list[WSVC_HOST_IP].leading[0];
+	__strtol(hostPort, wsvc_arg_list[WSVC_HOST_PORT].leading[0],
+			"Failed to convert \'%s\' to host port!\n",
+			wsvc_arg_list[WSVC_HOST_PORT].leading[0]
+			);
+	__strtol(maxClient, wsvc_arg_list[WSVC_MAX_CLIENT].leading[0],
+			"Failed to convert \'%s\' to maximum client connection!\n",
+			wsvc_arg_list[WSVC_MAX_CLIENT].leading[0]
+			);
+
+	// Create tcpmgr
+	ret = tcpmgr_create(&mgr, hostIP, hostPort, maxClient);
+	if(ret < 0)
+	{
+		printf("Server initialization failed!\n");
+		goto RET;
+	}
 
 RET:
+	// Delete tcpmgr
+	tcpmgr_delete(mgr);
+
 	// Cleanup
 	wsvc_dev_close(&wsvc);
 
