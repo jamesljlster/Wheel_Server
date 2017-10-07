@@ -33,6 +33,7 @@ extern "C" {
 int wsvc_arg_check(args_t* argList);
 int wsvc_dev_open(wsvc_t* wsvc, args_t* argList);
 void wsvc_dev_close(wsvc_t* wsvc);
+void wsvc_client_task(void* arg, int sock);
 
 #ifdef __cplusplus
 }

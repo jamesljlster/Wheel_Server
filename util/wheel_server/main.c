@@ -5,6 +5,8 @@
 #include <wsvc.h>
 #include <tcpmgr.h>
 
+#define BUF_SIZE	128
+
 #define __strtol(var, str, errMsg, ...) \
 { \
 	char* tmpPtr; \
@@ -19,9 +21,13 @@
 
 int main(int argc, char* argv[])
 {
+	int i;
 	int ret;
 	wsvc_t wsvc;
 	tcpmgr_t mgr = NULL;
+
+	char tmpRead;
+	char buf[BUF_SIZE];
 
 	char* hostIP;
 	int hostPort, maxClient;
@@ -73,6 +79,55 @@ int main(int argc, char* argv[])
 		printf("Server initialization failed!\n");
 		goto RET;
 	}
+
+	// Start tcpmgr
+	ret = tcpmgr_start(mgr, wsvc_client_task, NULL);
+	if(ret < 0)
+	{
+		printf("tcpmgr_start() failed with error: %d\n", ret);
+		goto RET;
+	}
+
+	while(1)
+	{
+		for(i = 0; i < BUF_SIZE; i++)
+		{
+			ret = scanf("%c", &tmpRead);
+			if(ret <= 0)
+			{
+				continue;
+			}
+
+			if(tmpRead == '\n')
+			{
+				buf[i] = '\0';
+				break;
+			}
+			else
+			{
+				buf[i] = tmpRead;
+			}
+		}
+
+		if(strcmp(buf, "stop") == 0)
+		{
+			break;
+		}
+		else if(strcmp(buf, "restart") == 0)
+		{
+			tcpmgr_stop(mgr);
+
+			ret = tcpmgr_start(mgr, wsvc_client_task, &wsvc);
+			if(ret < 0)
+			{
+				printf("tcpmgr_start() failed with error: %d\n", ret);
+				goto RET;
+			}
+		}
+	}
+
+	// Stop tcpmgr
+	tcpmgr_stop(mgr);
 
 RET:
 	// Delete tcpmgr
