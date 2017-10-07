@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 	}
 
 	// Start tcpmgr
-	ret = tcpmgr_start(mgr, wsvc_client_task, NULL);
+	ret = tcpmgr_start(mgr, wsvc_client_task, &wsvc);
 	if(ret < 0)
 	{
 		printf("tcpmgr_start() failed with error: %d\n", ret);
