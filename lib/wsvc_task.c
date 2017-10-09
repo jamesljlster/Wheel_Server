@@ -21,6 +21,7 @@ int wsvc_client_str_recv(int sock, char* buf, int bufLen);
 void wsvc_client_task(void* arg, int sock)
 {
 	int ret;
+	int tmpSal, tmpSar;
 	int lockStatus = 0;
 	wsvc_t* wsvc = arg;
 	struct timespec timeTmp;
@@ -45,6 +46,7 @@ void wsvc_client_task(void* arg, int sock)
 		LOG("Received: %s", buf);
 
 		// Run task
+		ret = 0;
 		if(strcmp(buf, "WLOCK") == 0)
 		{
 			if(!lockStatus)
@@ -71,9 +73,43 @@ void wsvc_client_task(void* arg, int sock)
 		}
 		else if(strcmp(buf, "WGET") == 0)
 		{
+			sprintf(buf, "W%03d%03d\x0A", wsvc->sal, wsvc->sar);
+			ret = send(sock, buf, strlen(buf), 0);
+			if(ret <= 0)
+			{
+				break;
+			}
 		}
 		else if(strlen(buf) == 7)
 		{
+			// Lock device
+			if(!lockStatus)
+			{
+				timeTmp.tv_sec = 0;
+				timeTmp.tv_nsec = wsvc->devTimeout * 10000;
+				ret = pthread_mutex_timedlock(&wsvc->mutex, &timeTmp);
+				if(ret == 0)
+				{
+					lockStatus = 1;
+				}
+			}
+
+			// Decode and control
+			if(lockStatus)
+			{
+				tmpSal = (buf[1] - '0') * 100 + (buf[2] - '0') * 10 + (buf[3] - '0');
+				tmpSar = (buf[4] - '0') * 100 + (buf[5] - '0') * 10 + (buf[6] - '0');
+				ret = WCTRL_Control(wsvc->wCtrl, tmpSal, tmpSar, 0);
+				if(ret == WCTRL_NO_ERROR)
+				{
+					wsvc->sal = tmpSal;
+					wsvc->sar = tmpSar;
+				}
+
+				// Unlock device
+				pthread_mutex_unlock(&wsvc->mutex);
+				lockStatus = 0;
+			}
 		}
 		else
 		{
@@ -81,18 +117,18 @@ void wsvc_client_task(void* arg, int sock)
 		}
 
 		// Send response
-		if(ret < 0)
+		if(ret == 0)
 		{
 			ret = send(sock, "WOK\x0A", strlen("WOK\x0A"), 0);
-			if(ret < 0)
+			if(ret <= 0)
 			{
 				break;
 			}
 		}
-		else
+		else if(ret < 0)
 		{
 			ret = send(sock, "WERR\x0A", strlen("WERR\x0A"), 0);
-			if(ret < 0)
+			if(ret <= 0)
 			{
 				break;
 			}
