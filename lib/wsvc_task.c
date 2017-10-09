@@ -22,7 +22,7 @@ void wsvc_client_task(void* arg, int sock)
 {
 	int ret;
 	int tmpSal, tmpSar;
-	int lockStatus = 0;
+	int lockHold, lockStatus = 0;
 	wsvc_t* wsvc = arg;
 	struct timespec timeTmp;
 
@@ -81,11 +81,15 @@ void wsvc_client_task(void* arg, int sock)
 			}
 			else
 			{
-				ret = 0;
+				// No need to send response
+				continue;
 			}
 		}
 		else if(strlen(buf) == 7)
 		{
+			// Set lock hold
+			lockHold = lockStatus;
+
 			// Lock device
 			if(!lockStatus)
 			{
@@ -111,8 +115,11 @@ void wsvc_client_task(void* arg, int sock)
 				}
 
 				// Unlock device
-				pthread_mutex_unlock(&wsvc->mutex);
-				lockStatus = 0;
+				if(!lockHold)
+				{
+					pthread_mutex_unlock(&wsvc->mutex);
+					lockStatus = 0;
+				}
 			}
 		}
 		else
