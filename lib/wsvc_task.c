@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <tcpmgr_sock.h>
 
 #include "wsvc.h"
@@ -22,6 +23,7 @@ void wsvc_client_task(void* arg, int sock)
 	int ret;
 	int lockStatus = 0;
 	wsvc_t* wsvc = arg;
+	struct timespec timeTmp;
 
 	char buf[BUF_SIZE] = {0};
 
@@ -33,6 +35,7 @@ void wsvc_client_task(void* arg, int sock)
 	// Loop for communication
 	while(1)
 	{
+		// Receive a string
 		ret = wsvc_client_str_recv(sock, buf, BUF_SIZE);
 		if(ret < 0)
 		{
@@ -40,16 +43,84 @@ void wsvc_client_task(void* arg, int sock)
 		}
 
 		LOG("Received: %s", buf);
+
+		// Run task
+		if(strcmp(buf, "WLOCK") == 0)
+		{
+			if(!lockStatus)
+			{
+				timeTmp.tv_sec = 0;
+				timeTmp.tv_nsec = wsvc->devTimeout * 10000;
+				ret = pthread_mutex_timedlock(&wsvc->mutex, &timeTmp);
+				if(ret == 0)
+				{
+					lockStatus = 1;
+					ret = send(sock, "WOK\x0A", strlen("WOK\x0A"), 0);
+					if(ret < 0)
+					{
+						break;
+					}
+				}
+				else
+				{
+					ret = send(sock, "WERR\x0A", strlen("WOK\x0A"), 0);
+					if(ret < 0)
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+				ret = send(sock, "WOK\x0A", strlen("WOK\x0A"), 0);
+				if(ret < 0)
+				{
+					break;
+				}
+			}
+		}
+		else if(strcmp(buf, "WUNLOCK") == 0)
+		{
+			if(lockStatus)
+			{
+				ret = pthread_mutex_unlock(&wsvc->mutex);
+				if(ret == 0)
+				{
+					lockStatus = 0;
+					ret = send(sock, "WOK\x0A", strlen("WOK\x0A"), 0);
+					if(ret < 0)
+					{
+						break;
+					}
+				}
+				else
+				{
+					ret = send(sock, "WERR\x0A", strlen("WOK\x0A"), 0);
+					if(ret < 0)
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+				ret = send(sock, "WERR\x0A", strlen("WOK\x0A"), 0);
+				if(ret < 0)
+				{
+					break;
+				}
+			}
+		}
 	}
 
 	// Cleanup
-	pthread_cleanup_pop(lockStatus);
-
 	if(lockStatus)
 	{
 		pthread_mutex_unlock(&wsvc->mutex);
+		lockStatus = 0;
 	}
 
+	pthread_cleanup_pop(lockStatus);
 	LOG("exit");
 }
 
