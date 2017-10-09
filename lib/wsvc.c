@@ -102,6 +102,9 @@ int wsvc_dev_open(wsvc_t* wsvc, args_t* argList)
 		goto RET;
 	}
 
+	wsvc->sal = 255;
+	wsvc->sar = 255;
+
 RET:
 	return ret;
 }

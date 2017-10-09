@@ -18,6 +18,9 @@ enum WSVC_ARG
 typedef struct WSVC
 {
 	WCTRL wCtrl;
+	int sal;
+	int sar;
+
 	int devTimeout;
 
 	int mutexFlag;
