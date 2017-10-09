@@ -55,27 +55,6 @@ void wsvc_client_task(void* arg, int sock)
 				if(ret == 0)
 				{
 					lockStatus = 1;
-					ret = send(sock, "WOK\x0A", strlen("WOK\x0A"), 0);
-					if(ret < 0)
-					{
-						break;
-					}
-				}
-				else
-				{
-					ret = send(sock, "WERR\x0A", strlen("WOK\x0A"), 0);
-					if(ret < 0)
-					{
-						break;
-					}
-				}
-			}
-			else
-			{
-				ret = send(sock, "WOK\x0A", strlen("WOK\x0A"), 0);
-				if(ret < 0)
-				{
-					break;
 				}
 			}
 		}
@@ -87,28 +66,35 @@ void wsvc_client_task(void* arg, int sock)
 				if(ret == 0)
 				{
 					lockStatus = 0;
-					ret = send(sock, "WOK\x0A", strlen("WOK\x0A"), 0);
-					if(ret < 0)
-					{
-						break;
-					}
-				}
-				else
-				{
-					ret = send(sock, "WERR\x0A", strlen("WOK\x0A"), 0);
-					if(ret < 0)
-					{
-						break;
-					}
 				}
 			}
-			else
+		}
+		else if(strcmp(buf, "WGET") == 0)
+		{
+		}
+		else if(strlen(buf) == 7)
+		{
+		}
+		else
+		{
+			ret = -1;
+		}
+
+		// Send response
+		if(ret < 0)
+		{
+			ret = send(sock, "WOK\x0A", strlen("WOK\x0A"), 0);
+			if(ret < 0)
 			{
-				ret = send(sock, "WERR\x0A", strlen("WOK\x0A"), 0);
-				if(ret < 0)
-				{
-					break;
-				}
+				break;
+			}
+		}
+		else
+		{
+			ret = send(sock, "WERR\x0A", strlen("WERR\x0A"), 0);
+			if(ret < 0)
+			{
+				break;
 			}
 		}
 	}
