@@ -79,6 +79,10 @@ void wsvc_client_task(void* arg, int sock)
 			{
 				break;
 			}
+			else
+			{
+				ret = 0;
+			}
 		}
 		else if(strlen(buf) == 7)
 		{
@@ -125,7 +129,7 @@ void wsvc_client_task(void* arg, int sock)
 				break;
 			}
 		}
-		else if(ret < 0)
+		else
 		{
 			ret = send(sock, "WERR\x0A", strlen("WERR\x0A"), 0);
 			if(ret <= 0)
