@@ -3,6 +3,8 @@
 
 #include "wsvc.h"
 
+#define WSVC_INIT_TIMEOUT	3000
+
 char* wsvc_ip_def[] = {
 	"0.0.0.0"
 };
@@ -94,7 +96,7 @@ int wsvc_dev_open(wsvc_t* wsvc, args_t* argList)
 	}
 
 	// Open device
-	ret = WCTRL_Init(&wsvc->wCtrl, argList[WSVC_DEV_PATH].leading[0], baud);
+	ret = WCTRL_Init(&wsvc->wCtrl, argList[WSVC_DEV_PATH].leading[0], baud, WSVC_INIT_TIMEOUT);
 	if(ret < 0)
 	{
 		printf("Failed to open device with path: \'%s\', baudrate: %d\n",
