@@ -51,8 +51,8 @@ void wsvc_client_task(void* arg, int sock)
 		{
 			if(!lockStatus)
 			{
-				timeTmp.tv_sec = 0;
-				timeTmp.tv_nsec = wsvc->devTimeout * 10000;
+				clock_gettime(CLOCK_REALTIME, &timeTmp);
+				timeTmp.tv_nsec += wsvc->devTimeout * 1000000;
 				ret = pthread_mutex_timedlock(&wsvc->mutex, &timeTmp);
 				if(ret == 0)
 				{
@@ -93,8 +93,8 @@ void wsvc_client_task(void* arg, int sock)
 			// Lock device
 			if(!lockStatus)
 			{
-				timeTmp.tv_sec = 0;
-				timeTmp.tv_nsec = wsvc->devTimeout * 10000;
+				clock_gettime(CLOCK_REALTIME, &timeTmp);
+				timeTmp.tv_nsec += wsvc->devTimeout * 1000000;
 				ret = pthread_mutex_timedlock(&wsvc->mutex, &timeTmp);
 				if(ret == 0)
 				{
@@ -107,7 +107,7 @@ void wsvc_client_task(void* arg, int sock)
 			{
 				tmpSal = (buf[1] - '0') * 100 + (buf[2] - '0') * 10 + (buf[3] - '0');
 				tmpSar = (buf[4] - '0') * 100 + (buf[5] - '0') * 10 + (buf[6] - '0');
-				ret = WCTRL_Control(wsvc->wCtrl, tmpSal, tmpSar, 0);
+				ret = WCTRL_Control(wsvc->wCtrl, tmpSal, tmpSar, wsvc->devTimeout);
 				if(ret == WCTRL_NO_ERROR)
 				{
 					wsvc->sal = tmpSal;
