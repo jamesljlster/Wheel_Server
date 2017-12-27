@@ -126,6 +126,27 @@ int wsvc_dev_open(wsvc_t* wsvc, args_t* argList)
 		goto RET;
 	}
 
+	// Start watchdog task
+	if(wsvc->wdogTimeout > 0)
+	{
+		// Set watchdog time left and flag
+		wsvc->wdogTimeLeft = wsvc->wdogTimeout;
+		wsvc->wdogTaskFlag = 1;
+
+		// Start watchdog task
+		ret = pthread_create(&wsvc->wdogTask, NULL, wsvc_wdog_task, wsvc);
+		if(ret != 0)
+		{
+			ret = -1;
+			printf("Failed to start watchdog task!\n");
+			goto RET;
+		}
+		else
+		{
+			wsvc->wdogTaskStatus = 1;
+		}
+	}
+
 	wsvc->sal = 255;
 	wsvc->sar = 255;
 
@@ -135,6 +156,13 @@ RET:
 
 void wsvc_dev_close(wsvc_t* wsvc)
 {
+	// Stop watchdog task
+	if(wsvc->wdogTaskStatus > 0)
+	{
+		pthread_cancel(wsvc->wdogTask);
+		pthread_join(wsvc->wdogTask, NULL);
+	}
+
 	// Close device
 	WCTRL_Close(wsvc->wCtrl);
 
