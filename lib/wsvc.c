@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "wsvc.h"
 
@@ -21,13 +22,18 @@ char* wsvc_dev_timeout_def[] = {
 	"20"
 };
 
+char* wsvc_wdog_timeout_def[] = {
+	"1000"
+};
+
 args_t wsvc_arg_list[] = {
 	{1, "host-ip", 'I', 1, wsvc_ip_def, "Server Setting", "Host IP dddress"},
 	{1, "host-port", 'P', 1, wsvc_port_def, "Host port"},
 	{1, "max-client", 'M', 1, wsvc_max_client_def, "Maximum client connection"},
 	{0, "dev-path", 'D', 1, NULL, "Wheel Device Setting", "Wheel device path"},
 	{0, "dev-baud", 'B', 1, NULL, "Wheel device baudrate"},
-	{1, "dev-timeout", 'T', 1, wsvc_dev_timeout_def, "Wheel device timeout"},
+	{1, "dev-timeout", 'T', 1, wsvc_dev_timeout_def, NULL, "Wheel device timeout"},
+	{1, "wdog-timeout", 'W', 1, wsvc_wdog_timeout_def, NULL, "Watchdog timeout"},
 	{0, "help", 'H', 0, NULL, "User Interface", "Print detail of arguments"},
 	ARGS_TERMINATE
 };
@@ -61,6 +67,9 @@ int wsvc_dev_open(wsvc_t* wsvc, args_t* argList)
 	int baud, timeout;
 	char* tmpPtr;
 
+	// Zero memory
+	memset(wsvc, 0, sizeof(wsvc_t));
+
 	// Parse baudrate
 	baud = strtol(argList[WSVC_DEV_BAUD].leading[0], &tmpPtr, 10);
 	if(tmpPtr == argList[WSVC_DEV_BAUD].leading[0])
@@ -81,6 +90,19 @@ int wsvc_dev_open(wsvc_t* wsvc, args_t* argList)
 	else
 	{
 		wsvc->devTimeout = timeout;
+	}
+
+	// Parse watchdog timeout
+	timeout = strtol(argList[WSVC_WDOG_TIMEOUT].leading[0], &tmpPtr, 10);
+	if(tmpPtr == argList[WSVC_WDOG_TIMEOUT].leading[0])
+	{
+		printf("Failed to parse \'%s\' to watchdog timeout!\n", tmpPtr);
+		ret = -1;
+		goto RET;
+	}
+	else
+	{
+		wsvc->wdogTimeout = timeout;
 	}
 
 	// Create mutex

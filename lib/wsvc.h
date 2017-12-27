@@ -12,7 +12,8 @@ enum WSVC_ARG
 	WSVC_MAX_CLIENT,
 	WSVC_DEV_PATH,
 	WSVC_DEV_BAUD,
-	WSVC_DEV_TIMEOUT
+	WSVC_DEV_TIMEOUT,
+	WSVC_WDOG_TIMEOUT
 };
 
 typedef struct WSVC
@@ -25,6 +26,11 @@ typedef struct WSVC
 
 	int mutexFlag;
 	pthread_mutex_t mutex;
+
+	int wdogTimeout;
+	int wdogTimeLeft;
+	int wdogTaskFlag;
+	pthread_t wdogTask;
 } wsvc_t;
 
 extern args_t wsvc_arg_list[];
