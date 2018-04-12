@@ -18,6 +18,65 @@ void mutex_unlock(void* arg);
 
 int wsvc_client_str_recv(int sock, char* buf, int bufLen);
 
+void* wsvc_wdog_task(void* arg)
+{
+	int ret;
+	int lockStatus = 0;
+	wsvc_t* wsvc = arg;
+	struct timespec timeTmp;
+
+	// Setup cleanup handler
+	pthread_cleanup_push(mutex_unlock, &wsvc->mutex);
+
+	while(wsvc->wdogTaskFlag > 0)
+	{
+		// Wating watchdog timeout
+		for( ; wsvc->wdogTimeLeft > 0; wsvc->wdogTimeLeft--)
+		{
+			usleep(1000);
+		}
+
+		// Lock device
+		clock_gettime(CLOCK_REALTIME, &timeTmp);
+		timeTmp.tv_nsec += wsvc->devTimeout * 1000000;
+		ret = pthread_mutex_timedlock(&wsvc->mutex, &timeTmp);
+		if(ret == 0)
+		{
+			lockStatus = 1;
+		}
+		else
+		{
+			continue;
+		}
+
+		// Stop wheel
+		ret = WCTRL_Control(wsvc->wCtrl, 255, 255, wsvc->devTimeout);
+		if(ret == WCTRL_NO_ERROR)
+		{
+			wsvc->sal = 255;
+			wsvc->sar = 255;
+		}
+
+		// Unlock device
+		pthread_mutex_unlock(&wsvc->mutex);
+		lockStatus = 0;
+
+		// Reset watch dog time left
+		wsvc->wdogTimeLeft = wsvc->wdogTimeout;
+	}
+
+	// Cleanup
+	if(lockStatus)
+	{
+		pthread_mutex_unlock(&wsvc->mutex);
+		lockStatus = 0;
+	}
+
+	pthread_cleanup_pop(lockStatus);
+	pthread_exit(NULL);
+	return NULL;
+}
+
 void wsvc_client_task(void* arg, int sock)
 {
 	int ret;
