@@ -9,13 +9,9 @@ set(PROJECT_DEPS wsvc Wheel tcpmgr args serialport pthread)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
-# Variables
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Build confugure" FORCE)
-if(DEFINED CMAKE_BUILD_TYPE)
-	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES})
-endif()
+# Set default build type
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # Set project
@@ -23,29 +19,26 @@ project(${PROJECT_NAME} ${PROJECT_LANGUAGE})
 
 # Add definition
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-	add_definitions(-DDEBUG)
+    add_definitions(-DDEBUG)
 endif()
 
 # Include directory
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set file list
-file(GLOB PROJECT_SRCS
-	${CMAKE_CURRENT_SOURCE_DIR}/*.c
-	${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
-	)
+file(GLOB PROJECT_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # Build utility
 add_executable(${PROJECT_NAME} ${PROJECT_SRCS})
-set_target_properties(${PROJECT_NAME}
-	PROPERTIES OUTPUT_NAME ${PROJECT_NAME}
-	)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    OUTPUT_NAME ${PROJECT_NAME}
+    )
 target_link_libraries(${PROJECT_NAME} ${PROJECT_DEPS})
 
 # Install
 install(TARGETS ${PROJECT_NAME}
-	RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
-	ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
-	LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
-	PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_PREFIX}/include"
-	)
+    RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
+    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_PREFIX}/include"
+    )
