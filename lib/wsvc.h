@@ -13,7 +13,8 @@ enum WSVC_ARG
     WSVC_DEV_PATH,
     WSVC_DEV_BAUD,
     WSVC_DEV_TIMEOUT,
-    WSVC_WDOG_TIMEOUT
+    WSVC_WDOG_TIMEOUT,
+    WSVC_HELP
 };
 
 typedef struct WSVC

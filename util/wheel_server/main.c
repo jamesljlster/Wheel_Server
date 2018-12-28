@@ -37,8 +37,9 @@ int main(int argc, char* argv[])
 
     // Process arguments
     ret = args_parse(wsvc_arg_list, argc, argv, NULL);
-    if (ret < 0)
+    if (ret < 0 || wsvc_arg_list[WSVC_HELP].enable > 0)
     {
+        args_print_help(wsvc_arg_list);
         goto RET;
     }
 
