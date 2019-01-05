@@ -1,9 +1,9 @@
 [submodule "deps/Wheel"]
 	path = deps/Wheel
-	url = git@140.127.205.188:jamesljlster/Wheel.git
+	url = ../Wheel.git
 [submodule "deps/tcpmgr"]
 	path = deps/tcpmgr
-	url = git@140.127.205.188:jamesljlster/tcpmgr.git
+	url = ../tcpmgr.git
 [submodule "deps/args"]
 	path = deps/args
-	url = git@140.127.205.188:jamesljlster/args.git
+	url = ../args.git
